@@ -31,8 +31,8 @@ func main() {
 
 	srv := server.NewServer(server.Config{
 		BindAddr:       getEnv("BIND_ADDR", ":8080"),
-		MaxHeaderBytes: -100,
-		ReadTimeout:    -500,
+		MaxHeaderBytes: 1,
+		ReadTimeout:    10,
 		WriteTimeout:   10,
 	}, router.InitRoutes())
 	if err = srv.Run(); err != nil {
