@@ -2,13 +2,22 @@ package store
 
 import "github.com/tmrrwnxtsn/todo-lists-api/internal/model"
 
-// AuthRepository ...
-type AuthRepository interface {
-	CreateUser(user model.User) (uint64, error)
-	GetUser(username, passwordHash string) (model.User, error)
+// UserRepository ...
+type UserRepository interface {
+	// Create ...
+	Create(user model.User) (uint64, error)
+	// Get ...
+	Get(username, passwordHash string) (model.User, error)
 }
 
-type TodoList interface {
+// TodoListRepository ...
+type TodoListRepository interface {
+	// Create ...
+	Create(userId uint64, list model.TodoList) (uint64, error)
+	// GetAll ...
+	GetAll(userId uint64) ([]model.TodoList, error)
+	// GetById ...
+	GetById(userId, todoListId uint64) (model.TodoList, error)
 }
 
 type TodoItem interface {

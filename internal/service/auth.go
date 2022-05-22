@@ -2,6 +2,7 @@ package service
 
 import (
 	"crypto/sha1"
+	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/tmrrwnxtsn/todo-lists-api/internal/model"
@@ -15,22 +16,28 @@ const (
 	tokenTTL   = 12 * time.Hour
 )
 
+var (
+	ErrSigningMethod        = errors.New("invalid signing method")
+	ErrWrongAccessTokenType = errors.New("token claims are not of type *tokenClaims")
+)
+
 type Authorization interface {
 	CreateUser(user model.User) (uint64, error)
 	GenerateToken(username, password string) (string, error)
+	ParseToken(accessToken string) (uint64, error)
 }
 
 type AuthService struct {
-	repo store.AuthRepository
+	repo store.UserRepository
 }
 
-func NewAuthService(repo store.AuthRepository) *AuthService {
+func NewAuthService(repo store.UserRepository) *AuthService {
 	return &AuthService{repo: repo}
 }
 
 func (s *AuthService) CreateUser(user model.User) (uint64, error) {
 	user.Password = generatePasswordHash(user.Password)
-	return s.repo.CreateUser(user)
+	return s.repo.Create(user)
 }
 
 type tokenClaims struct {
@@ -39,7 +46,7 @@ type tokenClaims struct {
 }
 
 func (s *AuthService) GenerateToken(username, password string) (string, error) {
-	user, err := s.repo.GetUser(username, generatePasswordHash(password))
+	user, err := s.repo.Get(username, generatePasswordHash(password))
 	if err != nil {
 		return "", err
 	}
@@ -53,6 +60,26 @@ func (s *AuthService) GenerateToken(username, password string) (string, error) {
 	})
 
 	return token.SignedString([]byte(signingKey))
+}
+
+func (s *AuthService) ParseToken(accessToken string) (uint64, error) {
+	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, ErrSigningMethod
+		}
+
+		return []byte(signingKey), nil
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	claims, ok := token.Claims.(*tokenClaims)
+	if !ok {
+		return 0, ErrWrongAccessTokenType
+	}
+
+	return claims.UserId, nil
 }
 
 func generatePasswordHash(password string) string {
