@@ -1,7 +1,9 @@
 package store
 
+// Store ...
 type Store interface {
-	Authorization
+	// Auth ...
+	Auth() AuthRepository
 	TodoList
 	TodoItem
 }
