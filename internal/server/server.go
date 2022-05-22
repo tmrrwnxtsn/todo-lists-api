@@ -1,19 +1,18 @@
-package apiserver
+package server
 
 import (
 	"context"
-	"github.com/tmrrwnxtsn/todo-lists-api/internal/config"
 	"net/http"
 	"time"
 )
 
 type Server struct {
-	config     *config.Config
+	config     Config
 	handler    http.Handler
 	httpServer *http.Server
 }
 
-func NewServer(cfg *config.Config, handler http.Handler) *Server {
+func NewServer(cfg Config, handler http.Handler) *Server {
 	return &Server{
 		config:  cfg,
 		handler: handler,

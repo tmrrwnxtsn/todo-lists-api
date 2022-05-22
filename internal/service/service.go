@@ -17,6 +17,6 @@ type Service struct {
 	TodoItem
 }
 
-func NewService(store *store.Store) *Service {
+func NewService(store store.Store) *Service {
 	return &Service{}
 }

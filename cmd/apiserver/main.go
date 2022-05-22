@@ -1,35 +1,49 @@
 package main
 
 import (
-	"flag"
-	"github.com/tmrrwnxtsn/todo-lists-api/internal/apiserver"
-	"github.com/tmrrwnxtsn/todo-lists-api/internal/config"
+	_ "github.com/lib/pq"
+	"github.com/sirupsen/logrus"
 	"github.com/tmrrwnxtsn/todo-lists-api/internal/handler"
+	"github.com/tmrrwnxtsn/todo-lists-api/internal/server"
 	"github.com/tmrrwnxtsn/todo-lists-api/internal/service"
-	"github.com/tmrrwnxtsn/todo-lists-api/internal/store"
-	"log"
+	"github.com/tmrrwnxtsn/todo-lists-api/internal/store/postgres"
+	"os"
 )
 
-var configPath string
-
-func init() {
-	flag.StringVar(&configPath, "config-path", "configs/apiserver.toml", "path to the config path")
-}
-
 func main() {
-	flag.Parse()
+	logrus.SetFormatter(&logrus.JSONFormatter{})
 
-	cfg := config.NewConfig()
-	if err := cfg.Load(configPath); err != nil {
-		log.Fatalf("error occured while reading config file: %s", err.Error())
+	db, err := postgres.NewDB(postgres.Config{
+		Host:     getEnv("DB_HOST", "localhost"),
+		Port:     getEnv("DB_PORT", "5433"),
+		Username: getEnv("DB_USERNAME", "postgres"),
+		Password: getEnv("DB_PASSWORD", "qwerty"),
+		DBName:   getEnv("DB_NAME", "postgres"),
+		SSLMode:  getEnv("DB_SSL_MODE", "disable"),
+	})
+	if err != nil {
+		logrus.Fatalf("error occured while connecting to database: %s", err.Error())
 	}
 
-	st := store.NewStore()
+	st := postgres.NewStore(db)
 	services := service.NewService(st)
 	router := handler.NewHandler(services)
 
-	srv := apiserver.NewServer(cfg, router.InitRoutes())
-	if err := srv.Run(); err != nil {
-		log.Fatalf("error occured while running http server: %s", err.Error())
+	srv := server.NewServer(server.Config{
+		BindAddr:       getEnv("BIND_ADDR", ":8080"),
+		MaxHeaderBytes: -100,
+		ReadTimeout:    -500,
+		WriteTimeout:   10,
+	}, router.InitRoutes())
+	if err = srv.Run(); err != nil {
+		logrus.Fatalf("error occured while running API server: %s", err.Error())
 	}
+}
+
+// getEnv is a simple helper function to read an environment or return a default value
+func getEnv(key string, defaultVal string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return defaultVal
 }
