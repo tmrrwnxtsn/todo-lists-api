@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/tmrrwnxtsn/todo-lists-api/internal/handler"
@@ -8,6 +9,8 @@ import (
 	"github.com/tmrrwnxtsn/todo-lists-api/internal/service"
 	"github.com/tmrrwnxtsn/todo-lists-api/internal/store/postgres"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
@@ -35,8 +38,25 @@ func main() {
 		ReadTimeout:    10,
 		WriteTimeout:   10,
 	}, router.InitRoutes())
-	if err = srv.Run(); err != nil {
-		logrus.Fatalf("error occured while running API server: %s", err.Error())
+	go func() {
+		if err = srv.Run(); err != nil {
+			logrus.Fatalf("error occured while running API server: %s", err.Error())
+		}
+	}()
+
+	logrus.Println("API server started!")
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+	<-quit
+
+	logrus.Println("API shutting down")
+
+	if err = srv.Shutdown(context.Background()); err != nil {
+		logrus.Fatalf("error occured while shutting down API server: %s", err.Error())
+	}
+	if err = db.Close(); err != nil {
+		logrus.Fatalf("error occured while closing database connection: %s", err.Error())
 	}
 }
 
