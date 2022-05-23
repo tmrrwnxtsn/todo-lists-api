@@ -6,5 +6,6 @@ type Store interface {
 	User() UserRepository
 	// TodoList ...
 	TodoList() TodoListRepository
-	TodoItem
+	// TodoListItem ...
+	TodoListItem() TodoListItemRepository
 }

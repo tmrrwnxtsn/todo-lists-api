@@ -8,38 +8,38 @@ import (
 type TodoList interface {
 	Create(userId uint64, list model.TodoList) (uint64, error)
 	GetAll(userId uint64) ([]model.TodoList, error)
-	GetById(userId, todoListId uint64) (model.TodoList, error)
-	Update(userId, todoListId uint64, data model.UpdateTodoListData) error
-	Delete(userId, todoListId uint64) error
+	GetById(userId, listId uint64) (model.TodoList, error)
+	Update(userId, listId uint64, data model.UpdateTodoListData) error
+	Delete(userId, listId uint64) error
 }
 
 type TodoListService struct {
-	repo store.TodoListRepository
+	listRepository store.TodoListRepository
 }
 
 func NewTodoListService(repo store.TodoListRepository) *TodoListService {
-	return &TodoListService{repo: repo}
+	return &TodoListService{listRepository: repo}
 }
 
 func (s *TodoListService) Create(userId uint64, list model.TodoList) (uint64, error) {
-	return s.repo.Create(userId, list)
+	return s.listRepository.Create(userId, list)
 }
 
 func (s *TodoListService) GetAll(userId uint64) ([]model.TodoList, error) {
-	return s.repo.GetAll(userId)
+	return s.listRepository.GetAll(userId)
 }
 
-func (s *TodoListService) GetById(userId, todoListId uint64) (model.TodoList, error) {
-	return s.repo.GetById(userId, todoListId)
+func (s *TodoListService) GetById(userId, listId uint64) (model.TodoList, error) {
+	return s.listRepository.GetById(userId, listId)
 }
 
-func (s *TodoListService) Update(userId, todoListId uint64, data model.UpdateTodoListData) error {
+func (s *TodoListService) Update(userId, listId uint64, data model.UpdateTodoListData) error {
 	if err := data.Validate(); err != nil {
 		return err
 	}
-	return s.repo.Update(userId, todoListId, data)
+	return s.listRepository.Update(userId, listId, data)
 }
 
-func (s *TodoListService) Delete(userId, todoListId uint64) error {
-	return s.repo.Delete(userId, todoListId)
+func (s *TodoListService) Delete(userId, listId uint64) error {
+	return s.listRepository.Delete(userId, listId)
 }

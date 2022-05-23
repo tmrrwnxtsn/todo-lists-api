@@ -28,16 +28,16 @@ type Authorization interface {
 }
 
 type AuthService struct {
-	repo store.UserRepository
+	userRepository store.UserRepository
 }
 
 func NewAuthService(repo store.UserRepository) *AuthService {
-	return &AuthService{repo: repo}
+	return &AuthService{userRepository: repo}
 }
 
 func (s *AuthService) CreateUser(user model.User) (uint64, error) {
 	user.Password = generatePasswordHash(user.Password)
-	return s.repo.Create(user)
+	return s.userRepository.Create(user)
 }
 
 type tokenClaims struct {
@@ -46,7 +46,7 @@ type tokenClaims struct {
 }
 
 func (s *AuthService) GenerateToken(username, password string) (string, error) {
-	user, err := s.repo.Get(username, generatePasswordHash(password))
+	user, err := s.userRepository.Get(username, generatePasswordHash(password))
 	if err != nil {
 		return "", err
 	}

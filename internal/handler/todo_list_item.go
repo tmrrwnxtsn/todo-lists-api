@@ -7,53 +7,41 @@ import (
 	"strconv"
 )
 
-func (h *Handler) createList(c *gin.Context) {
+func (h *Handler) createItem(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
 		// headers has already been written
 		return
 	}
 
-	var request model.TodoList
+	listId, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid id")
+		return
+	}
+
+	var request model.TodoListItem
 	if err = c.BindJSON(&request); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	listId, err := h.services.TodoListService.Create(userId, request)
+	itemId, err := h.services.TodoListItemService.Create(userId, listId, request)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	c.JSON(http.StatusCreated, map[string]interface{}{
-		"id": listId,
+		"id": itemId,
 	})
 }
 
-type getAllListsResponse struct {
-	Data []model.TodoList `json:"data"`
+type getAllItemsResponse struct {
+	Data []model.TodoListItem `json:"data"`
 }
 
-func (h *Handler) getAllLists(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		// headers has already been written
-		return
-	}
-
-	lists, err := h.services.TodoListService.GetAll(userId)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	c.JSON(http.StatusOK, getAllListsResponse{
-		Data: lists,
-	})
-}
-
-func (h *Handler) getListById(c *gin.Context) {
+func (h *Handler) getAllItems(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
 		// headers has already been written
@@ -66,35 +54,59 @@ func (h *Handler) getListById(c *gin.Context) {
 		return
 	}
 
-	todoList, err := h.services.TodoListService.GetById(userId, listId)
+	items, err := h.services.TodoListItemService.GetAll(userId, listId)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, todoList)
+	c.JSON(http.StatusOK, getAllItemsResponse{
+		Data: items,
+	})
 }
 
-func (h *Handler) updateList(c *gin.Context) {
+func (h *Handler) getItemById(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
 		// headers has already been written
 		return
 	}
 
-	listId, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	itemId, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid id")
 		return
 	}
 
-	var request model.UpdateTodoListData
+	item, err := h.services.TodoListItemService.GetById(userId, itemId)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, item)
+}
+
+func (h *Handler) updateItem(c *gin.Context) {
+	userId, err := getUserId(c)
+	if err != nil {
+		// headers has already been written
+		return
+	}
+
+	itemId, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid id")
+		return
+	}
+
+	var request model.UpdateTodoListItemData
 	if err = c.BindJSON(&request); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	if err = h.services.TodoListService.Update(userId, listId, request); err != nil {
+	if err = h.services.TodoListItemService.Update(userId, itemId, request); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -104,20 +116,20 @@ func (h *Handler) updateList(c *gin.Context) {
 	})
 }
 
-func (h *Handler) deleteList(c *gin.Context) {
+func (h *Handler) deleteItem(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
 		// headers has already been written
 		return
 	}
 
-	listId, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	itemId, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid id")
 		return
 	}
 
-	if err = h.services.TodoListService.Delete(userId, listId); err != nil {
+	if err = h.services.TodoListItemService.Delete(userId, itemId); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}

@@ -8,9 +8,10 @@ import (
 var _ store.Store = (*Store)(nil)
 
 type Store struct {
-	db                 *sqlx.DB
-	userRepository     *UserRepository
-	todoListRepository *TodoListRepository
+	db             *sqlx.DB
+	userRepository *UserRepository
+	listRepository *TodoListRepository
+	itemRepository *TodoListItemRepository
 }
 
 func NewStore(db *sqlx.DB) *Store {
@@ -28,11 +29,21 @@ func (s *Store) User() store.UserRepository {
 }
 
 func (s *Store) TodoList() store.TodoListRepository {
-	if s.todoListRepository != nil {
-		return s.todoListRepository
+	if s.listRepository != nil {
+		return s.listRepository
 	}
 
-	s.todoListRepository = NewTodoListRepository(s)
+	s.listRepository = NewTodoListRepository(s)
 
-	return s.todoListRepository
+	return s.listRepository
+}
+
+func (s *Store) TodoListItem() store.TodoListItemRepository {
+	if s.itemRepository != nil {
+		return s.itemRepository
+	}
+
+	s.itemRepository = NewTodoListItemRepository(s)
+
+	return s.itemRepository
 }

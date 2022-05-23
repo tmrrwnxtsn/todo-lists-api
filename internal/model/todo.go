@@ -14,9 +14,9 @@ type UsersList struct {
 	ListId int
 }
 
-type TodoItem struct {
+type TodoListItem struct {
 	Id          int    `json:"id"`
-	Title       string `json:"title"`
+	Title       string `json:"title" binding:"required"`
 	Description string `json:"description"`
 	Done        bool   `json:"done"`
 }
@@ -32,9 +32,22 @@ type UpdateTodoListData struct {
 	Description *string `json:"description"`
 }
 
-func (r UpdateTodoListData) Validate() error {
-	if r.Title == nil && r.Description == nil {
+func (d UpdateTodoListData) Validate() error {
+	if d.Title == nil && d.Description == nil {
 		return errors.New("update todo list request has no values")
+	}
+	return nil
+}
+
+type UpdateTodoListItemData struct {
+	Title       *string `json:"title"`
+	Description *string `json:"description"`
+	Done        *bool   `json:"done"`
+}
+
+func (d UpdateTodoListItemData) Validate() error {
+	if d.Title == nil && d.Description == nil && d.Done == nil {
+		return errors.New("update todo list item request has no values")
 	}
 	return nil
 }
