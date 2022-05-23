@@ -76,9 +76,53 @@ func (h *Handler) getListById(c *gin.Context) {
 }
 
 func (h *Handler) updateList(c *gin.Context) {
+	userId, err := getUserId(c)
+	if err != nil {
+		// headers has already been written
+		return
+	}
 
+	todoListId, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid id")
+		return
+	}
+
+	var request model.UpdateTodoListData
+	if err = c.BindJSON(&request); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err = h.services.TodoListService.Update(userId, todoListId, request); err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "ok",
+	})
 }
 
 func (h *Handler) deleteList(c *gin.Context) {
+	userId, err := getUserId(c)
+	if err != nil {
+		// headers has already been written
+		return
+	}
 
+	todoListId, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid id")
+		return
+	}
+
+	if err = h.services.TodoListService.Delete(userId, todoListId); err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "ok",
+	})
 }

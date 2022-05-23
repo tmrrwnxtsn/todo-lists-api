@@ -13,7 +13,7 @@ import (
 const (
 	salt       = "asfafihfas8ga7sg7ashgah9s"
 	signingKey = "alsgjasg8gas6k5whwgjaso9"
-	tokenTTL   = 12 * time.Hour
+	tokenTTL   = 2 * time.Hour
 )
 
 var (
