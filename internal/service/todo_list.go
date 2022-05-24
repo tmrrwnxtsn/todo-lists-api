@@ -1,3 +1,4 @@
+//go:generate mockgen -source=todo_list.go -destination=mocks/todo_list_mock.go
 package service
 
 import (

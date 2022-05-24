@@ -1,3 +1,4 @@
+//go:generate mockgen -source=auth.go -destination=mocks/auth_mock.go
 package service
 
 import (
