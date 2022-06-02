@@ -25,12 +25,12 @@ func main() {
 	// load application configurations
 	cfg, err := config.Load(*flagConfig)
 	if err != nil {
-		logrus.Fatalf("error occured while loading application configuration: %s", err.Error())
+		logrus.Fatalf("error occurred while loading application configuration: %s", err.Error())
 	}
 
 	db, err := postgres.NewDB(cfg.DSN)
 	if err != nil {
-		logrus.Fatalf("error occured while connecting to database: %s", err.Error())
+		logrus.Fatalf("error occurred while connecting to database: %s", err.Error())
 	}
 
 	st := postgres.NewStore(db)
@@ -40,7 +40,7 @@ func main() {
 	srv := server.NewServer(cfg.BindAddr, router.InitRoutes())
 	go func() {
 		if err = srv.Run(); err != nil {
-			logrus.Fatalf("error occured while running API server: %s", err.Error())
+			logrus.Fatalf("error occurred while running API server: %s", err.Error())
 		}
 	}()
 
@@ -53,9 +53,9 @@ func main() {
 	logrus.Print("API server shutting down")
 
 	if err = srv.Shutdown(context.Background()); err != nil {
-		logrus.Fatalf("error occured while shutting down API server: %s", err.Error())
+		logrus.Fatalf("error occurred while shutting down API server: %s", err.Error())
 	}
 	if err = db.Close(); err != nil {
-		logrus.Fatalf("error occured while closing database connection: %s", err.Error())
+		logrus.Fatalf("error occurred while closing database connection: %s", err.Error())
 	}
 }
