@@ -7,25 +7,25 @@ import (
 )
 
 type Server struct {
-	config     Config
+	addr       string
 	handler    http.Handler
 	httpServer *http.Server
 }
 
-func NewServer(cfg Config, handler http.Handler) *Server {
+func NewServer(addr string, handler http.Handler) *Server {
 	return &Server{
-		config:  cfg,
+		addr:    addr,
 		handler: handler,
 	}
 }
 
 func (s *Server) Run() error {
 	s.httpServer = &http.Server{
-		Addr:           s.config.BindAddr,
+		Addr:           s.addr,
 		Handler:        s.handler,
-		MaxHeaderBytes: s.config.MaxHeaderBytes << 20, // MB
-		ReadTimeout:    time.Duration(s.config.ReadTimeout) * time.Second,
-		WriteTimeout:   time.Duration(s.config.WriteTimeout) * time.Second,
+		MaxHeaderBytes: 1 << 20, // MB
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
 	}
 
 	return s.httpServer.ListenAndServe()

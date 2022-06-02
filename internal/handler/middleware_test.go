@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/assert/v2"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 	"github.com/tmrrwnxtsn/todo-lists-api/internal/service"
 	mockservice "github.com/tmrrwnxtsn/todo-lists-api/internal/service/mocks"
 	"net/http/httptest"
@@ -43,6 +43,15 @@ func TestHandler_identifyUser(t *testing.T) {
 			mockBehavior:         func(r *mockservice.MockAuthorization, token string) {},
 			expectedStatusCode:   401,
 			expectedResponseBody: `{"message":"empty auth header"}`,
+		},
+		{
+			name:                 "invalid header parts length",
+			headerName:           "Authorization",
+			headerValue:          "Bearr token token",
+			token:                "token",
+			mockBehavior:         func(r *mockservice.MockAuthorization, token string) {},
+			expectedStatusCode:   401,
+			expectedResponseBody: `{"message":"invalid auth header"}`,
 		},
 		{
 			name:                 "invalid header value",

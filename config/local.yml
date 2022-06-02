@@ -1,0 +1,2 @@
+dsn: "postgres://127.0.0.1/todo_lists_db?sslmode=disable&user=postgres&password=qwerty"
+bind_addr: ":8080"

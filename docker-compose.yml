@@ -3,18 +3,13 @@ version: "3.9"
 services:
   api:
     build:
-      context: ./
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: cmd/apiserver/Dockerfile
     ports:
       - 8080:8080
     environment:
       - BIND_ADDR=:8080
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_USERNAME=user
-      - DB_PASSWORD=pass
-      - DB_NAME=postgres
-      - DB_SSL_MODE=disable
+      - DSN=postgres://db/todo_lists_db?sslmode=disable&user=user&password=pass
     depends_on:
       - db
   db:
@@ -25,10 +20,11 @@ services:
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=todo_lists_db
     volumes:
       - postgres_volume:/var/lib/postgresql/data
     healthcheck:
-      test: PGPASSWORD='pass' psql -U user --command='SELECT 1'
+      test: PGPASSWORD='pass' psql -U user todo_lists_db --command='SELECT 1'
       interval: 1s
       timeout: 2s
       retries: 5
