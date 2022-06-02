@@ -88,3 +88,77 @@ func TestHandler_signUp(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_signIn(t *testing.T) {
+	type mockBehavior func(s *mockservice.MockAuthorization, req signInRequest)
+
+	tests := []struct {
+		name                 string
+		inputBody            string
+		inputCreds           signInRequest
+		mockBehavior         mockBehavior
+		expectedStatusCode   int
+		expectedResponseBody string
+	}{
+		{
+			name:      "ok",
+			inputBody: `{"username":"tmrrwnxtsn","password":"qwerty"}`,
+			inputCreds: signInRequest{
+				Username: "tmrrwnxtsn",
+				Password: "qwerty",
+			},
+			mockBehavior: func(s *mockservice.MockAuthorization, creds signInRequest) {
+				s.EXPECT().GenerateToken(creds.Username, creds.Password).Return("token", nil)
+			},
+			expectedStatusCode:   200,
+			expectedResponseBody: `{"token":"token"}`,
+		},
+		{
+			name:                 "empty fields",
+			inputBody:            `{"username":"tmrrwnxtsn"}`,
+			mockBehavior:         func(s *mockservice.MockAuthorization, creds signInRequest) {},
+			expectedStatusCode:   400,
+			expectedResponseBody: `{"message":"invalid input body"}`,
+		},
+		{
+			name:      "service failure",
+			inputBody: `{"username":"tmrrwnxtsn","password":"qwerty"}`,
+			inputCreds: signInRequest{
+				Username: "tmrrwnxtsn",
+				Password: "qwerty",
+			},
+			mockBehavior: func(s *mockservice.MockAuthorization, creds signInRequest) {
+				s.EXPECT().GenerateToken(creds.Username, creds.Password).Return("", errors.New("service failure"))
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: `{"message":"service failure"}`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := gomock.NewController(t)
+			defer c.Finish()
+
+			auth := mockservice.NewMockAuthorization(c)
+			tt.mockBehavior(auth, tt.inputCreds)
+
+			services := &service.Service{AuthService: auth}
+			handler := NewHandler(services)
+
+			router := gin.New()
+			router.POST("/sign-in", handler.signIn)
+
+			responseRecorder := httptest.NewRecorder()
+			request := httptest.NewRequest(
+				"POST",
+				"/sign-in",
+				bytes.NewBufferString(tt.inputBody),
+			)
+
+			router.ServeHTTP(responseRecorder, request)
+
+			assert.Equal(t, tt.expectedStatusCode, responseRecorder.Code)
+			assert.Equal(t, tt.expectedResponseBody, responseRecorder.Body.String())
+		})
+	}
+}

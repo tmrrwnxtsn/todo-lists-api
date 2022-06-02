@@ -6,11 +6,13 @@ import (
 	"net/http"
 )
 
+const messageInvalidInputBody = "invalid input body"
+
 func (h *Handler) signUp(c *gin.Context) {
 	var request model.User
 
 	if err := c.BindJSON(&request); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid input body")
+		newErrorResponse(c, http.StatusBadRequest, messageInvalidInputBody)
 		return
 	}
 
@@ -34,7 +36,7 @@ func (h *Handler) signIn(c *gin.Context) {
 	var request signInRequest
 
 	if err := c.BindJSON(&request); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		newErrorResponse(c, http.StatusBadRequest, messageInvalidInputBody)
 		return
 	}
 
